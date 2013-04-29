@@ -1,7 +1,6 @@
 <?php
 	public class Session {
 
-		private $user_id;
 		private $session_user;
 
 		public function __construct() {
@@ -15,13 +14,11 @@
 	        session_name($session_name); // Sets the session name to the one set above.
 	        session_start(); // Start the php session
 	        session_regenerate_id(true); // regenerated the session, delete the old one.   
-
-	        $this->loginCheck();
 		}
  
 		public function loginCheck() {
 			if(isset($_SESSION['user_id']) && isset($_SESSION['remember_token']) {
-	        	$user = new $User();
+	        	$user = new User();
 	        	$user->find($_SESSION['user_id']);
 	        	if($user != null && $user->remember_token == $_SESSION['remember_token']) {
 	        		$this->session_user = $user;
@@ -31,6 +28,26 @@
 	        		return false;
 	        	}
 	        }
+	        else {
+	        	return false;
+	        }
+		}
+
+		public function login($form_email, $form_password) {
+			if(!isset($_SESSION['user_id'])) {
+				$user = new User();
+				$message = $user->login($form_email, $form_password);
+				if($message  == "Success") {
+					$_SESSION['login_string'] = $user->remember_token;
+					$_SESSION['user_id'] = $user->user_id; 
+				}
+				else if($message  == "Wrong password") {
+
+				}
+				else if($message  == "Email does not exist") {
+
+				}
+			}
 		}
 
 		public function logout() {
@@ -42,6 +59,25 @@
 
 		public function getSessionUser() {
 			return $this->session_user;
+		}
+
+		public function setSessionToken() {
+			//$this->session_token = hash('sha512', microtime());
+			$session_token = hash('sha512', microtime();
+			$_SESSION['session_token'] = $session_token;
+			return $session_token;
+		}
+
+		public function unsetSessionToken() {
+			if(isset($_SESSION['session_token'])) {
+				unset($_SESSION['session_token']);
+			}
+		}
+
+		public function getSessionToken() {
+			if(isset($_SESSION['session_token'])) {
+				return $_SESSION['session_token'];
+			}
 		}
 	}
 ?>

@@ -1,5 +1,6 @@
 <?php
 	public class User extends Model {
+
 		public function __construct() {
 			$field_array = array(
 							"user_id",
@@ -11,6 +12,7 @@
 							);
 			//parent::__construct;
 		}
+
 		public function login($form_email, $form_password) {
 			if(!isset($_SESSION['user_id'])) {
 				$query = "SELECT user_id, user_email, password, salt, remember_token 
@@ -27,25 +29,21 @@
 						$stmt->bind_result($user_id, $user_email, $password, $salt, $remember_token); 
 						$stmt->fetch();
 						$password = hash('sha512', $password.$salt); 
-
 						if($password == $form_password) {
 							//after each login generate new remember token
 							$this->generateRememberToken();
-							$_SESSION['login_string'] = $this->remember_token;
-							$_SESSION['user_id'] = $user_id; 
-
 							//To do: update query with new remember_token
-							return true;   
+							return "Success";   
 						}
 						else {
 							//echo wrong password
 							//brute force error
-							return false;
+							return "Wrong password";
 						} 
 					} 
 					else {
 						//user email does not exist
-						return false;
+						return "Email does not exist";
 					}
 				}
 				else {
