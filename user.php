@@ -1,9 +1,17 @@
 <?php
 	public class User extends Model {
-		public function __construct(){
+		public function __construct() {
+			$field_array = array(
+							"user_id",
+							"user_first_name",
+							"user_last_name",
+							"user_type",
+							"salt",
+							"remember_token"
+							);
 			//parent::__construct;
 		}
-		public function loginUser($form_email, $form_password) {
+		public function login($form_email, $form_password) {
 			if(!isset($_SESSION['user_id'])) {
 				$query = "SELECT user_id, user_email, password, salt, remember_token 
 							FROM user 
@@ -21,9 +29,12 @@
 						$password = hash('sha512', $password.$salt); 
 
 						if($password == $form_password) {
+							//after each login generate new remember token
+							$this->generateRememberToken();
+							$_SESSION['login_string'] = $this->remember_token;
 							$_SESSION['user_id'] = $user_id; 
-							$_SESSION['username'] = $username;
-							$_SESSION['login_string'] = hash('sha512', $password.$remember_token);
+
+							//To do: update query with new remember_token
 							return true;   
 						}
 						else {
@@ -41,6 +52,22 @@
 					//echo mysqli error
 				}
 			}
+		}
+
+		public function isAdmin() {
+			return $this->user_type == "admin" ? true : false;
+		}
+
+		public function insertNewUser() {
+
+		}
+
+		private function generateRememberToken(){
+			$this->remember_token = hash('sha512', $this->salt.microtime());
+		}
+
+		private function generateSalt() {
+			$this->salt = hash('sha512', microtime());
 		}
 	}
 ?>

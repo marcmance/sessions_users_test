@@ -2,6 +2,7 @@
 	public class Session {
 
 		private $user_id;
+		private $session_user;
 
 		public function __construct() {
 			$session_name = 'sec_session_id'; // Set a custom session name
@@ -15,22 +16,32 @@
 	        session_start(); // Start the php session
 	        session_regenerate_id(true); // regenerated the session, delete the old one.   
 
-	        if(isset($_SESSION['user_id'])) {
-	        	$this->user_id = $_SESSION['user_id'];
-	        }
-		}
-
-		public function setUserSession($user_id) {
-			$_SESSION['user_id'] = $user_id;
-			$this->user_id = $user_id;
+	        $this->loginCheck();
 		}
  
 		public function loginCheck() {
-
+			if(isset($_SESSION['user_id']) && isset($_SESSION['remember_token']) {
+	        	$user = new $User();
+	        	$user->find($_SESSION['user_id']);
+	        	if($user != null && $user->remember_token == $_SESSION['remember_token']) {
+	        		$this->session_user = $user;
+	   				return true;
+	        	}
+	        	else {
+	        		return false;
+	        	}
+	        }
 		}
 
-		public function getUserId() {
-			return $this->user_id;
+		public function logout() {
+			$_SESSION = array();
+			$params = session_get_cookie_params();
+			setcookie(session_name(), '', time() - 42000, $params["path"], $params["domain"], $params["secure"], $params["httponly"]);
+			session_destroy();
+		}
+
+		public function getSessionUser() {
+			return $this->session_user;
 		}
 	}
 ?>
