@@ -56,6 +56,10 @@
 			return $this->user_type == "admin" ? true : false;
 		}
 
+		public function getFullName() {
+			return $this->first_name . " " . $this->last_name;
+		}
+
 		public function insertNewUser() {
 
 		}
@@ -66,6 +70,18 @@
 
 		private function generateSalt() {
 			$this->salt = hash('sha512', microtime());
+		}
+
+		/*
+			protected $has_one =  array("parentTable"
+									)
+		*/
+
+		public function join($table, $params) {
+			if($in_array($table, $this->has_one, true)) {
+				$join_query = "JOIN " . $table . " ON " . $table . "." . $table ."_id = " . $this->table . "." . $table "_id";
+			}
+			return $this;
 		}
 	}
 ?>
