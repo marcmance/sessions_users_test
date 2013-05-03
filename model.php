@@ -26,6 +26,7 @@
 			if($select_fields == null) {
 				$select_fields = $this->fields_array;
 			}
+			
 			$fields = implode(",",$select_fields);
 
 			$query = "SELECT ".$fields ." FROM ". $this->table_name;
@@ -40,7 +41,17 @@
 		}
 
 		protected function _join() {
-
+			$new_join_array = array("","");
+			if(!empty($this->join_array)) {
+				foreach($this->join_array as $table => $select_fields) {
+					if(!empty($select_fields)) {
+						$new_join_array[1].= implode(",",$select_fields);
+					}
+					$new_join_array[0] .= "JOIN " . $table . " ON " . $table . "." . $table ."_id = " . $this->table . "." . $table "_id";
+				}
+			}
+			$this->join_array = array(); //reset join
+			return $new_join_array;
 		}
 		
 		/**
@@ -65,6 +76,10 @@
 			}
 
 			$fields = implode(",",$select_fields);
+
+			if(!empty($this->join_array)) {
+				$new_join_array = $this->_join();
+			}
 			
 			$query = "SELECT ".$fields ." FROM ". $this->table_name . " WHERE " . $find_by_column . " = ? LIMIT 1";
 			$params = array($param);
@@ -121,11 +136,6 @@
 			$fields_var = array();
 			$results = null;
 			
-			/*
-			foreach($this->fields_array as $f) {
-				$$f = null; 
-				$fields_var[$f] = &$$f; 
-			}	*/
 			$meta = $stmt->result_metadata();
 			while ($field = $meta->fetch_field()) {
 				$field_name = $field->name;
