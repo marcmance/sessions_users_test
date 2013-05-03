@@ -5,7 +5,7 @@
 		protected $fields_array;
 		protected $fields_var;
 		protected $table_name;
-		public $join_array;
+		public $join_array; //when join function gets called
 		
 		public function __construct() {
 			$this->mysqli = new mysqli(HOST_DB, USERNAME_DB, PASSWORD_DB, NAME_DB);
@@ -22,8 +22,12 @@
 			}
 		}
 		
-		public function getAll() {
-			$fields = implode(",",$this->fields_array);
+		public function getAll($select_fields = null) {
+			if($select_fields == null) {
+				$select_fields = $this->fields_array;
+			}
+			$fields = implode(",",$select_fields);
+
 			$query = "SELECT ".$fields ." FROM ". $this->table_name;
 			$results = null;
 			if ($stmt = $this->mysqli->prepare($query)) {
@@ -34,24 +38,32 @@
 				return $results;
 			}
 		}
+
+		protected function _join() {
+
+		}
 		
 		/**
 		 * Find a single record.
 		 *
 		 * @param string  $param The value to search by
-		 * @param array $select_fields The fields to select
 		 * @param string $find_by_column The column to search by
+		 * @param array $select_fields The fields to select
 		 *
 		 * @return query result
 		 */
-		public function find($param, $select_fields = null, $find_by_column = null) {
+		public function find($param, $find_by_column = null, $select_fields = null) {
+			//if no input, select *
 			if($select_fields == null) {
 				$select_fields = $this->fields_array;
 			}
+
+			//default to primary key id
 			if($find_by_column == null || $find_by_column == $this->table_name . "_id") {
 				$param = intval($param); 
 				$find_by_column = $this->table_name . "_id";
 			}
+
 			$fields = implode(",",$select_fields);
 			
 			$query = "SELECT ".$fields ." FROM ". $this->table_name . " WHERE " . $find_by_column . " = ? LIMIT 1";
@@ -59,7 +71,7 @@
 			$this->query($query, $params);
 		}
 		
-		public function join($table, $select_fields) {
+		public function join($table, $select_fields = null) {
 			$this->join_array[$table] = $select_fields;
 			return $this;
 		}
