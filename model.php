@@ -47,7 +47,7 @@
 					if(!empty($select_fields)) {
 						$new_join_array[1].= implode(",",$select_fields);
 					}
-					$new_join_array[0] .= "JOIN " . $table . " ON " . $table . "." . $table ."_id = " . $this->table . "." . $table "_id";
+					$new_join_array[0] .= "JOIN " . $table . " ON " . $table . "." . $table ."_id = " . $this->table_name . "." . $table . "_id";
 				}
 			}
 			$this->join_array = array(); //reset join
@@ -75,18 +75,41 @@
 				$find_by_column = $this->table_name . "_id";
 			}
 
-			$fields = implode(",",$select_fields);
-
+			
+			$join_statement = "";
+			$fields = "";
 			if(!empty($this->join_array)) {
 				$new_join_array = $this->_join();
+				$join_statement = $new_join_array[0];
+				$fields = implode(",",array_map(array($this, 'appendTableName'),$select_fields));
+				$fields .= ",". $new_join_array[1];
+			}
+			else {
+				$fields = implode(",",$select_fields);
 			}
 			
-			$query = "SELECT ".$fields ." FROM ". $this->table_name . " WHERE " . $find_by_column . " = ? LIMIT 1";
+			$query = "SELECT ".$fields ." FROM ". $this->table_name . " " . $join_statement . " WHERE " . $find_by_column . " = ? LIMIT 1";
+			echo "<br/><b>".$this->table_name.": </b>" . $query . "<br/>";
 			$params = array($param);
-			$this->query($query, $params);
+			return $this->query($query, $params);
+		}
+		
+		protected function appendTableName($field) {
+			return $this->table_name . "." . $field;
 		}
 		
 		public function join($table, $select_fields = null) {
+			if($select_fields != null) {
+				foreach($select_fields as $k => $v) {
+					//remove primary key to avoide dups
+					if($v == $table . "_id") {
+						unset($select_fields[$k]);
+					}
+					else {
+						$select_fields[$k] = $table.".".$v;
+					}
+				}
+			}
 			$this->join_array[$table] = $select_fields;
 			return $this;
 		}
@@ -138,6 +161,7 @@
 			
 			$meta = $stmt->result_metadata();
 			while ($field = $meta->fetch_field()) {
+				echo "<b>FIELD:</b>:" . $field->name . "<br/>";
 				$field_name = $field->name;
 				$$field_name = null;
 				$fields_var[$field_name] = &$$field_name;
